@@ -20,5 +20,15 @@ try {
 catch (err) {
     console.log(err);
 }
+function dbFind(collectionName, query, callback) {
+    const collection = db.collection(collectionName);
+    // Find documents
+    collection.find(query).toArray(function (err, docs) {
+        callback("<pre>" + JSON.stringify([err, docs], null, 5) + "</pre>");
+    });
+}
 app.get('/', (req, res) => res.send('<b>Welcome to livote!</b> Lichess shadow app.'));
+app.get('/test', (req, res) => dbFind("test", {}, (content) => {
+    res.send(content);
+}));
 app.listen(PORT, () => console.log(`livote server listening on ${PORT}`));
