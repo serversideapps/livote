@@ -34,7 +34,7 @@ function dbFind(collectionName:string,query:any,callback:any){
     })
 }
 
-app.get('/', (req:any, res:any) => res.send('<b>Welcome to livote!</b> Lichess shadow app with verified user names.'))
+app.get('/', (req:any, res:any) => res.send('<b>Welcome to livote!</b><hr>Lichess shadow app with verified user names.'))
 
 app.get('/test', (req:any, res:any) => dbFind("test",{},(content:string)=>{
     res.send(content)
