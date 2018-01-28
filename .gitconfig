@@ -1,0 +1,19 @@
+[core]
+	repositoryformatversion = 0
+	filemode = false
+	bare = false
+	logallrefupdates = true
+	symlinks = false
+	ignorecase = true
+[remote "origin"]
+	url = https://github.com/serversideapps/livote
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[user]
+	name = serversideapps
+	email = serversideapps2@gmail.com
+	[credential "https://github.com/serversideapps/livote"]
+		username = serversideapps
+[filter "hawser"]
+	clean = git hawser clean %f
+	smudge = git hawser smudge %f
+	required = true
