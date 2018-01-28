@@ -11,7 +11,7 @@ let MONGODB_URI = process.env.MONGODB_URI
 
 console.log(`mongo uri ${MONGODB_URI}`)
 
-let db = null
+let db:any = null
 
 try{
     mongodb.connect(MONGODB_URI, function(err:any, conn:any){
@@ -26,7 +26,19 @@ try{
     console.log(err)
 }
 
+function dbFind(collectionName:string,query:any,callback:any){
+    const collection = db.collection(collectionName)
+    // Find documents
+    collection.find(query).toArray(function(err:any, docs:any) {
+        callback("<pre>"+JSON.stringify([err,docs],null,5)+"</pre>")
+    })
+}
+
 app.get('/', (req:any, res:any) => res.send('<b>Welcome to livote!</b> Lichess shadow app.'))
+
+app.get('/test', (req:any, res:any) => dbFind("test",{},(content:string)=>{
+    res.send(content)
+}))
 
 app.listen(PORT, () => console.log(`livote server listening on ${PORT}`))
 
