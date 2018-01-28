@@ -13,14 +13,18 @@ console.log(`mongo uri ${MONGODB_URI}`)
 
 let db = null
 
-mongodb.connect(MONGODB_URI, function(err:any, conn:any){
-    if (err){
-        console.log(err)      
-    }else{
-        db = conn
-        console.log(`connected to MongoDB database < ${db.databaseName} >`)
-    }
-})
+try{
+    mongodb.connect(MONGODB_URI, function(err:any, conn:any){
+        if (err){
+            console.log(err)      
+        }else{
+            db = conn
+            console.log(`connected to MongoDB database < ${db.databaseName} >`)
+        }
+    })
+}catch(err){
+    console.log(err)
+}
 
 app.get('/', (req:any, res:any) => res.send('<b>Welcome to livote!</b> Lichess shadow app.'))
 
