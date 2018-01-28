@@ -34,6 +34,7 @@ function dbFind(collectionName, query, callback) {
 }
 let userCookies = {};
 function loginpage(usercookie, message = "") {
+    console.log("loginpage", usercookie, message);
     let user;
     if (usercookie != undefined) {
         if (userCookies[usercookie] != undefined) {
@@ -71,6 +72,7 @@ app.post('/', (req, res) => {
             res.send("?");
         }
         else {
+            console.log("post/", fields);
             let action = fields["action"];
             let username = fields["username"];
             if (action == "login") {
