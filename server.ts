@@ -43,6 +43,7 @@ function dbFind(collectionName:string,query:any,callback:any){
 let userCookies:{[id:string]:string}={}
 
 function loginpage(usercookie:any,message:string=""):string{
+    console.log("loginpage",usercookie,message)
     let user    
     if(usercookie!=undefined){
         if(userCookies[usercookie]!=undefined){
@@ -81,6 +82,7 @@ app.post('/', (req:any, res:any) => {
         if(err){
             res.send("?")
         }else{            
+            console.log("post/",fields)
             let action=fields["action"]
             let username=fields["username"]
             if(action=="login"){
