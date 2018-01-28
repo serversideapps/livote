@@ -27,7 +27,7 @@ function dbFind(collectionName, query, callback) {
         callback("<pre>" + JSON.stringify([err, docs], null, 5) + "</pre>");
     });
 }
-app.get('/', (req, res) => res.send('<b>Welcome to livote!</b> Lichess shadow app with verified user names.'));
+app.get('/', (req, res) => res.send('<b>Welcome to livote!</b><hr>Lichess shadow app with verified user names.'));
 app.get('/test', (req, res) => dbFind("test", {}, (content) => {
     res.send(content);
 }));
