@@ -25,11 +25,28 @@ try {
 catch (err) {
     console.log(err);
 }
+function browserify(json) {
+    return "<pre>" + JSON.stringify(json, null, 5) + "</pre>";
+}
 function dbFind(collectionName, query, callback) {
     const collection = db.collection(collectionName);
     // Find documents
     collection.find(query).toArray(function (err, docs) {
-        callback("<pre>" + JSON.stringify([err, docs], null, 5) + "</pre>");
+        callback(browserify([err, docs]));
+    });
+}
+function dbInsertMany(collectionName, docs, callback) {
+    const collection = db.collection(collectionName);
+    // Find documents
+    collection.insertMany(docs, function (err, result) {
+        callback(browserify([err, result]));
+    });
+}
+function dbDeleteMany(collectionName, query, callback) {
+    const collection = db.collection(collectionName);
+    // Find documents
+    collection.deleteMany(query, function (err, result) {
+        callback(browserify([err, result]));
     });
 }
 let userCookies = {};
@@ -117,6 +134,12 @@ app.post('/', (req, res) => {
 });
 app.get('/', (req, res) => res.send(loginpage(req.cookies["user"])));
 app.get('/test', (req, res) => dbFind("test", {}, (content) => {
+    res.send(content);
+}));
+app.get('/testi', (req, res) => dbInsertMany("test", [{ key1: "value1" }, { key2: "value2" }], (content) => {
+    res.send(content);
+}));
+app.get('/testd', (req, res) => dbDeleteMany("test", {}, (content) => {
     res.send(content);
 }));
 app.listen(PORT, () => console.log(`livote server listening on ${PORT}`));
