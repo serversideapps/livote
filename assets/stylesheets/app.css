@@ -1,0 +1,73 @@
+.maintable{
+    border-collapse: separate;
+    border-spacing: 5px;
+    background-color:#eee;   
+}
+
+.maintable thead td{
+    padding: 3px;
+    background-color: aquamarine;
+    text-align: center;
+}
+
+.loggedintd{
+    vertical-align: middle;
+}
+
+.playerstable{
+    border-collapse: separate;
+    border-spacing: 3px;
+    background-color:#ddd;
+}
+
+.playerstable td{
+    padding:3px;
+    background-color:#ccc;
+}
+
+.playerstable thead td{
+    text-align: left;
+    background-color: aqua;
+}
+
+.playerranktd{
+    font-size: 20px;    
+    text-align: center;
+}
+
+.playernametd{
+    font-size: 25px;    
+}
+
+.playerlifestd{
+    font-size: 25px;
+    text-align: center;    
+}
+
+.votesdiv{
+    width: 600px;
+    height: 500px;
+    overflow: scroll;
+}
+
+.infodiv{
+    background-color: yellow;
+    padding: 5px;
+    font-weight: bold;
+}
+
+.normal{
+    background-color: #eee;
+}
+
+.info{
+    background-color:#aaf;
+}
+
+.success{
+    background-color:#afa;
+}
+
+.error{
+    background-color:#fcc;
+}
