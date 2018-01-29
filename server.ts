@@ -32,11 +32,31 @@ try{
     console.log(err)
 }
 
+function browserify(json:any){
+    return "<pre>"+JSON.stringify(json,null,5)+"</pre>"
+}
+
 function dbFind(collectionName:string,query:any,callback:any){
     const collection = db.collection(collectionName)
     // Find documents
-    collection.find(query).toArray(function(err:any, docs:any) {
-        callback("<pre>"+JSON.stringify([err,docs],null,5)+"</pre>")
+    collection.find(query).toArray(function(err:any, docs:any){
+        callback(browserify([err,docs]))
+    })
+}
+
+function dbInsertMany(collectionName:string,docs:any,callback:any){
+    const collection = db.collection(collectionName)
+    // Find documents
+    collection.insertMany(docs,function(err:any, result:any){
+        callback(browserify([err,result]))
+    })
+}
+
+function dbDeleteMany(collectionName:string,query:any,callback:any){
+    const collection = db.collection(collectionName)
+    // Find documents
+    collection.deleteMany(query,function(err:any, result:any){
+        callback(browserify([err,result]))
     })
 }
 
@@ -126,6 +146,14 @@ app.post('/', (req:any, res:any) => {
 app.get('/', (req:any, res:any) => res.send(loginpage(req.cookies["user"])))
 
 app.get('/test', (req:any, res:any) => dbFind("test",{},(content:string)=>{
+    res.send(content)
+}))
+
+app.get('/testi', (req:any, res:any) => dbInsertMany("test",[{key1:"value1"},{key2:"value2"}],(content:string)=>{
+    res.send(content)
+}))
+
+app.get('/testd', (req:any, res:any) => dbDeleteMany("test",{},(content:string)=>{
     res.send(content)
 }))
 
