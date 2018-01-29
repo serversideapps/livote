@@ -15,9 +15,32 @@ let PORT = 8080
 
 let MONGODB_URI = process.env.MONGODB_URI
 
+let USERS_COLL = "test"
+
+let COOKIE_VALIDITY = 7 * 24 * 3600 * 1000
+
+let userCookies:{[id:string]:string}={}
+
 console.log(`mongo uri ${MONGODB_URI}`)
 
 let db:any = null
+
+function usersStartup(){
+    if(db!=null){
+        dbFind(USERS_COLL,{},function(result:any){
+            if(result[0]){
+                console.log("users startup failed",result[0])
+            }else{
+                console.log(`users startup ok, ${result[1].length} cookie(s)`)
+                for(let obj of result[1]){
+                    let now=new Date().getTime()
+                    if((now-obj.time)<2*COOKIE_VALIDITY)
+                        userCookies[obj.cookie]=obj.username
+                }
+            }
+        })
+    }
+}
 
 try{
     mongodb.connect(MONGODB_URI, function(err:any, conn:any){
@@ -26,6 +49,7 @@ try{
         }else{
             db = conn
             console.log(`connected to MongoDB database < ${db.databaseName} >`)
+            usersStartup()
         }
     })
 }catch(err){
@@ -40,7 +64,7 @@ function dbFind(collectionName:string,query:any,callback:any){
     const collection = db.collection(collectionName)
     // Find documents
     collection.find(query).toArray(function(err:any, docs:any){
-        callback(browserify([err,docs]))
+        callback([err,docs])
     })
 }
 
@@ -48,7 +72,7 @@ function dbInsertMany(collectionName:string,docs:any,callback:any){
     const collection = db.collection(collectionName)
     // Find documents
     collection.insertMany(docs,function(err:any, result:any){
-        callback(browserify([err,result]))
+        callback([err,result])
     })
 }
 
@@ -56,11 +80,9 @@ function dbDeleteMany(collectionName:string,query:any,callback:any){
     const collection = db.collection(collectionName)
     // Find documents
     collection.deleteMany(query,function(err:any, result:any){
-        callback(browserify([err,result]))
+        callback([err,result])
     })
 }
-
-let userCookies:{[id:string]:string}={}
 
 function loginpage(usercookie:any,message:string=""):string{
     console.log("loginpage",usercookie,message)
@@ -129,14 +151,21 @@ app.post('/', (req:any, res:any) => {
                     if(index>=0){
                         let cookie=username+"_"+uniqid()
                         userCookies[cookie]=username
-                        res.cookie("user",cookie,{maxAge:7*24*3600*1000})
-                        res.send(loginpage(cookie,`Info: ${username} logged in ok.`))
+                        let doc:any={
+                            cookie:cookie,
+                            username:username,
+                            time:new Date().getTime()
+                        }                        
+                        dbInsertMany(USERS_COLL,[doc],function(result:any){
+                            res.cookie("user",cookie,{maxAge:COOKIE_VALIDITY})
+                            res.send(loginpage(cookie,`Info: ${username} logged in ok.`))
+                        })                        
                     }else{
                         res.send(loginpage(undefined,`Error: code was not found in ${username}'s profile.`))
                     }
                 })
             }else if(action=="logout"){
-                res.clearCookie("user")
+                res.clearCookie("user")                
                 res.send(loginpage(null,`Info: ${username} logged out ok.`))
             }
         }
@@ -145,16 +174,16 @@ app.post('/', (req:any, res:any) => {
 
 app.get('/', (req:any, res:any) => res.send(loginpage(req.cookies["user"])))
 
-app.get('/test', (req:any, res:any) => dbFind("test",{},(content:string)=>{
-    res.send(content)
+app.get('/test', (req:any, res:any) => dbFind("test",{},(result:any)=>{
+    res.send(browserify(result))
 }))
 
-app.get('/testi', (req:any, res:any) => dbInsertMany("test",[{key1:"value1"},{key2:"value2"}],(content:string)=>{
-    res.send(content)
+app.get('/testi', (req:any, res:any) => dbInsertMany("test",[{key1:"value1"},{key2:"value2"}],(result:string)=>{
+    res.send(browserify(result))
 }))
 
-app.get('/testd', (req:any, res:any) => dbDeleteMany("test",{},(content:string)=>{
-    res.send(content)
+app.get('/testd', (req:any, res:any) => dbDeleteMany("test",{},(result:string)=>{
+    res.send(browserify(result))
 }))
 
 app.listen(PORT, () => console.log(`livote server listening on ${PORT}`))
