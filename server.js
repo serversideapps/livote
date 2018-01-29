@@ -9,8 +9,28 @@ const app = express();
 app.use(cookieParser());
 let PORT = 8080;
 let MONGODB_URI = process.env.MONGODB_URI;
+let USERS_COLL = "test";
+let COOKIE_VALIDITY = 7 * 24 * 3600 * 1000;
+let userCookies = {};
 console.log(`mongo uri ${MONGODB_URI}`);
 let db = null;
+function usersStartup() {
+    if (db != null) {
+        dbFind(USERS_COLL, {}, function (result) {
+            if (result[0]) {
+                console.log("users startup failed", result[0]);
+            }
+            else {
+                console.log(`users startup ok, ${result[1].length} cookie(s)`);
+                for (let obj of result[1]) {
+                    let now = new Date().getTime();
+                    if ((now - obj.time) < 2 * COOKIE_VALIDITY)
+                        userCookies[obj.cookie] = obj.username;
+                }
+            }
+        });
+    }
+}
 try {
     mongodb.connect(MONGODB_URI, function (err, conn) {
         if (err) {
@@ -19,6 +39,7 @@ try {
         else {
             db = conn;
             console.log(`connected to MongoDB database < ${db.databaseName} >`);
+            usersStartup();
         }
     });
 }
@@ -32,24 +53,23 @@ function dbFind(collectionName, query, callback) {
     const collection = db.collection(collectionName);
     // Find documents
     collection.find(query).toArray(function (err, docs) {
-        callback(browserify([err, docs]));
+        callback([err, docs]);
     });
 }
 function dbInsertMany(collectionName, docs, callback) {
     const collection = db.collection(collectionName);
     // Find documents
     collection.insertMany(docs, function (err, result) {
-        callback(browserify([err, result]));
+        callback([err, result]);
     });
 }
 function dbDeleteMany(collectionName, query, callback) {
     const collection = db.collection(collectionName);
     // Find documents
     collection.deleteMany(query, function (err, result) {
-        callback(browserify([err, result]));
+        callback([err, result]);
     });
 }
-let userCookies = {};
 function loginpage(usercookie, message = "") {
     console.log("loginpage", usercookie, message);
     let user;
@@ -117,8 +137,15 @@ app.post('/', (req, res) => {
                     if (index >= 0) {
                         let cookie = username + "_" + uniqid();
                         userCookies[cookie] = username;
-                        res.cookie("user", cookie, { maxAge: 7 * 24 * 3600 * 1000 });
-                        res.send(loginpage(cookie, `Info: ${username} logged in ok.`));
+                        let doc = {
+                            cookie: cookie,
+                            username: username,
+                            time: new Date().getTime()
+                        };
+                        dbInsertMany(USERS_COLL, [doc], function (result) {
+                            res.cookie("user", cookie, { maxAge: COOKIE_VALIDITY });
+                            res.send(loginpage(cookie, `Info: ${username} logged in ok.`));
+                        });
                     }
                     else {
                         res.send(loginpage(undefined, `Error: code was not found in ${username}'s profile.`));
@@ -133,13 +160,13 @@ app.post('/', (req, res) => {
     });
 });
 app.get('/', (req, res) => res.send(loginpage(req.cookies["user"])));
-app.get('/test', (req, res) => dbFind("test", {}, (content) => {
-    res.send(content);
+app.get('/test', (req, res) => dbFind("test", {}, (result) => {
+    res.send(browserify(result));
 }));
-app.get('/testi', (req, res) => dbInsertMany("test", [{ key1: "value1" }, { key2: "value2" }], (content) => {
-    res.send(content);
+app.get('/testi', (req, res) => dbInsertMany("test", [{ key1: "value1" }, { key2: "value2" }], (result) => {
+    res.send(browserify(result));
 }));
-app.get('/testd', (req, res) => dbDeleteMany("test", {}, (content) => {
-    res.send(content);
+app.get('/testd', (req, res) => dbDeleteMany("test", {}, (result) => {
+    res.send(browserify(result));
 }));
 app.listen(PORT, () => console.log(`livote server listening on ${PORT}`));
